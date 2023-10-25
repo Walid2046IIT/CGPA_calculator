@@ -1,0 +1,220 @@
+<html>
+<head>
+    <title>Multiple Subject CGPA Calculator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+        }
+        .calculator {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .subject {
+            margin-bottom: 10px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f7f7f7;
+        }
+        .subject label {
+            display: block;
+            margin-top: 5px;
+        }
+        .subject input {
+            width: 100%;
+            padding: 5px;
+            margin-top: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .removeSubject {
+            background-color: #ff6b6b;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            padding: 5px 10px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .removeSubject:hover {
+            background-color: #e74c3c;
+        }
+        .action-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+        .calculate-button {
+            background-color: #4caf50;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+        .calculate-button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator">
+        <h1>Multiple Subject CGPA Calculator</h1>
+        <div id="subjects">
+            <!-- Input fields for subject details will be added here -->
+        </div>
+        <div class="action-buttons">
+            <button id="addSubject">Add Subject</button>
+            <button id="checkNecessity">Check Necessity for Third Examiner Marks</button>
+        </div>
+        <button id="calculateCGPA" class="calculate-button">Calculate CGPA</button>
+        <div id="result"></div>
+    </div>
+
+    <script>
+        const subjects = [];
+
+        function calculateCGPA(credit, Incourse, first, second, third) {
+            var totalSum = 0;
+            var flag = 0;
+
+            totalSum += Incourse;
+
+            var pavel = Math.abs(first - second);
+
+            if (pavel >= 12 && !isNaN(first) && !isNaN(second)) {
+                var pavel2 = Math.abs(third - first);
+                var pavel3 = Math.abs(third - second);
+
+                if (pavel2 > pavel3 && !isNaN(third) && !isNaN(second)) {
+                    totalSum += (second + third) / 2;
+                } else if (!isNaN(third) && !isNaN(second)) {
+                    totalSum += (first + third) / 2;
+                } else {
+                    totalSum += first;
+                }
+            } else {
+                if (isNaN(third) && isNaN(second)) {
+                    totalSum += first;
+                } else {
+                    totalSum += (first + second) / 2;
+                }
+            }
+
+            if (totalSum >= 80 && totalSum <= 100) {
+                totalSum = 4;
+            } else if (totalSum >= 75 && totalSum < 80) {
+                totalSum = 3.75;
+            } else if (totalSum >= 70 && totalSum < 75) {
+                totalSum = 3.5;
+            } else if (totalSum >= 65 && totalSum < 70) {
+                totalSum = 3.25;
+            } else if (totalSum >= 60 && totalSum < 65) {
+                totalSum = 3;
+            } else if (totalSum >= 55 && totalSum < 60) {
+                totalSum = 2.75;
+            } else if (totalSum >= 50 && totalSum < 55) {
+                totalSum = 2.5;
+            } else if (totalSum >= 45 && totalSum < 50) {
+                totalSum = 2.25;
+            } else if (totalSum >= 40 && totalSum < 45) {
+                totalSum = 2;
+            } else {
+                totalSum = 0;
+                flag = 1;
+            }
+
+            totalSum *= credit;
+
+            return { totalSum: totalSum, flag: flag };
+        }
+
+        document.getElementById("addSubject").addEventListener("click", function() {
+            const subjectDiv = document.createElement("div");
+            subjectDiv.className = "subject";
+
+            subjectDiv.innerHTML = `
+            <label for="subjectName">Subject Name: </label>
+        <input type="text" class="subjectName">
+        <label for="credits">Credits: </label>
+        <input type="number" class="credits" min="0">
+        <label for="Incourse">In-course Marks: </label>
+        <input type="number" class="Incourse" min="0">
+        <label for="first">First Examiner Marks: </label>
+        <input type="number" class="first" min="0">
+        <label for="second">Second Examiner Marks: </label>
+        <input type="number" class="second" min="0">
+        <label for="third">Third Examiner Marks: </label>
+        <input type="number" class="third" min="0" disabled>
+        <button class="removeSubject">Remove Subject</button><br>
+            `;
+
+            document.getElementById("subjects").appendChild(subjectDiv);
+        });
+
+        document.getElementById("checkNecessity").addEventListener("click", function() {
+            const subjectElements = document.querySelectorAll(".subject");
+
+            subjectElements.forEach(subjectElement => {
+                const first = parseFloat(subjectElement.querySelector(".first").value);
+                const second = parseFloat(subjectElement.querySelector(".second").value);
+                const thirdInput = subjectElement.querySelector(".third");
+
+                if (Math.abs(first - second) < 12) {
+                    thirdInput.disabled = true;
+                } else {
+                    thirdInput.disabled = false;
+                }
+            });
+        });
+
+        document.getElementById("subjects").addEventListener("click", function(e) {
+            if (e.target.classList.contains("removeSubject")) {
+                e.target.parentNode.remove();
+            }
+        });
+
+        document.getElementById("calculateCGPA").addEventListener("click", function() {
+            const subjectElements = document.querySelectorAll(".subject");
+            subjects.length = 0;
+
+            subjectElements.forEach(subjectElement => {
+                const credits = parseFloat(subjectElement.querySelector(".credits").value);
+                const Incourse = parseFloat(subjectElement.querySelector(".Incourse").value);
+                const first = parseFloat(subjectElement.querySelector(".first").value);
+                const second = parseFloat(subjectElement.querySelector(".second").value);
+                const third = parseFloat(subjectElement.querySelector(".third").value);
+
+                if (!isNaN(credits) && credits > 0) {
+                    subjects.push({ credits, Incourse, first, second, third });
+                }
+            });
+
+            if (subjects.length === 0) {
+                document.getElementById("result").textContent = "No valid subjects added.";
+            } else {
+                let totalCredits = 0;
+                let totalGradePoints = 0;
+
+                subjects.forEach(subject => {
+                    const { credits, Incourse, first, second, third } = subject;
+                    const { totalSum, flag } = calculateCGPA(credits, Incourse, first, second, third);
+
+                    totalCredits += credits;
+                    totalGradePoints += totalSum;
+                });
+
+                const cgpa = totalGradePoints / totalCredits;
+                document.getElementById("result").textContent = "Your CGPA is: " + cgpa.toFixed(2);
+            }
+        });
+    </script>
+</body>
+</html>
+
